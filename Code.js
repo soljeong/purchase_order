@@ -36,7 +36,7 @@ function confirmOrder() {
 
   // 발주번호를 구매의뢰 시트에도 반영
   recordOrderNumberToRequests(data, orderNumber);
-  
+
   // 발주번호 드롭다운 재설정
   setDropdownFromOrderNumbers();
 
@@ -233,6 +233,7 @@ function onOpen() {
     .addItem('① 드롭다운 구매처 생성', 'setDropdownFromVendors')
     .addItem('② 선택된 구매처 데이터 복사', 'copyFilteredVendorRows')
     .addItem('③ 발주 확정 및 발주번호 발행', 'confirmOrder')
+    .addItem('④ 발주서 작성', 'showInvoice')
     .addToUi();
 
   setDropdownFromVendors();
@@ -250,4 +251,42 @@ function onEdit(e) {
     copyFilteredVendorRows();
   }
 }
+// 발주서 작성
+function showInvoice() {
+  const template = HtmlService.createTemplateFromFile('invoice');
 
+
+  // 예시 데이터 삽입
+  template.offerCode = "PO-20250415qqq";
+  template.offerDate = "2025-04-15";
+  template.buyerName = "EZVATION Inc";
+  template.buyerAddress = "308-11 Songjeong-ri, Mado-myeon, Hwaseong-si, Gyeonggi-do, Republic of Korea";
+  template.buyerEmail = "";
+  template.buyerWechat = "";
+  template.buyerAttn = "";
+  template.supplierName = "";
+  template.supplierAddress = "";
+  template.supplierEmail = "";
+  template.supplierWechat = "";
+  template.supplierAttn = "";
+  template.remarks = "";
+
+  template.totalQty = 3;
+  template.totalAmount = 0;
+  template.logoUrl = "https://your-logo-url.png";
+
+  template.items = [
+    { sku: "PT-0000004", productName: "", material: "", unitPrice: "", currency: "", quantity: 1, amount: "" },
+    { sku: "PT-0000003", productName: "", material: "", unitPrice: "", currency: "", quantity: 1, amount: "" },
+    { sku: "PT-0000001", productName: "", material: "", unitPrice: "", currency: "", quantity: 1, amount: "" }
+  ];
+
+  template.emptyRows = 10 - template.items.length;
+
+  const htmlOutput = template.evaluate()
+    .setWidth(800)
+    .setHeight(600);
+
+  SpreadsheetApp.getUi().showModalDialog(htmlOutput, '발주서');
+
+}

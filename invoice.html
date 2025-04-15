@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Purchase Order</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    @media print {
+      @page { 
+        size: A4; 
+        margin: 10mm;
+      }
+      body {
+        min-width: 210mm;
+      }
+    }
+    
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 12pt;
+      background-color: #f8f9fa;
+    }
+    
+    .page {
+      background-color: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 20px;
+      margin: 20px auto;
+      max-width: 210mm;
+    }
+    
+    h1 {
+      font-weight: 600;
+      border-bottom: 2px solid #dee2e6;
+      padding-bottom: 10px;
+    }
+    
+    .order-info {
+      background-color: #f8f9fa;
+      border-radius: 5px;
+      padding: 10px;
+    }
+    
+    .table th {
+      background-color: #f1f1f1;
+    }
+    
+    .remarks-box {
+      min-height: 100px;
+      border: 1px solid #dee2e6;
+      border-radius: 5px;
+      padding: 10px;
+    }
+    
+    .logo-container {
+      text-align: center;
+      margin-top: 30px;
+    }
+    
+    .logo-container img {
+      max-width: 160px;
+    }
+    
+    .text-total {
+      font-weight: bold;
+      background-color: #fff9db;
+    }
+  </style>
+</head>
+<body>
+  <div class="container page">
+    <!-- SECTION 1: TITLE -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <h1 class="text-center">PURCHASE ORDER</h1>
+      </div>
+    </div>
+
+    <!-- SECTION 2: Order Info -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="order-info text-end">
+          <div class="row mb-2">
+            <div class="col-8 text-end">
+              <strong>Offer code:</strong>
+            </div>
+            <div class="col-4">
+              <?= offerCode ?>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-8 text-end">
+              <strong>Offer date:</strong>
+            </div>
+            <div class="col-4">
+              <?= offerDate ?>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: Buyer and Supplier Info -->
+    <div class="row mb-4">
+      <div class="col-6">
+        <div class="card rounded-0">
+          <div class="card-header bg-light">
+            <strong>Buyer</strong>
+          </div>
+          <div class="card-body">
+            <div class="row mb-2">
+              <div class="col-4"><strong>Name</strong></div>
+              <div class="col-8"><?= buyerName ?></div>
+            </div>
+            <div class="row mb-2">
+              <div class="col-4"><strong>ATTN</strong></div>
+              <div class="col-8"><?= buyerAttn ?></div>
+            </div>
+            <div class="row mb-2">
+              <div class="col-4"><strong>Address</strong></div>
+              <div class="col-8"><?= buyerAddress ?></div>
+            </div>
+            <div class="row mb-2">
+              <div class="col-4"><strong>Email</strong></div>
+              <div class="col-8"><?= buyerEmail ?></div>
+            </div>
+            <div class="row">
+              <div class="col-4"><strong>Wechat</strong></div>
+              <div class="col-8"><?= buyerWechat ?></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="card rounded-0">
+          <div class="card-header bg-light">
+            <strong>Supplier</strong>
+          </div>
+          <div class="card-body">
+            <div class="row mb-2">
+              <div class="col-4"><strong>Name</strong></div>
+              <div class="col-8"><?= supplierName ?></div>
+            </div>
+            <div class="row mb-2">
+              <div class="col-4"><strong>ATTN</strong></div>
+              <div class="col-8"><?= supplierAttn ?></div>
+            </div>
+            <div class="row mb-2">
+              <div class="col-4"><strong>Address</strong></div>
+              <div class="col-8"><?= supplierAddress ?></div>
+            </div>
+            <div class="row mb-2">
+              <div class="col-4"><strong>Email</strong></div>
+              <div class="col-8"><?= supplierEmail ?></div>
+            </div>
+            <div class="row">
+              <div class="col-4"><strong>Wechat</strong></div>
+              <div class="col-8"><?= supplierWechat ?></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 4: Remarks -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card rounded-0">
+          <div class="card-header bg-light">
+            <strong>Remarks</strong>
+          </div>
+          <div class="card-body">
+            <div class="remarks-box rounded-0"><?= remarks ?></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 5: Order Table -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <p class="mb-3"><strong>We are pleased to order you as follows:</strong></p>
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr class="table-secondary">
+                <th>No</th>
+                <th>SKU Code</th>
+                <th>Product Name</th>
+                <th>Color/Material</th>
+                <th>Unit Price</th>
+                <th>Currency</th>
+                <th>Quantity</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <? for (var i = 0; i < items.length; i++) { ?>
+                <tr>
+                  <td><?= i + 1 ?></td>
+                  <td><?= items[i].sku ?></td>
+                  <td><?= items[i].productName ?></td>
+                  <td><?= items[i].material ?></td>
+                  <td><?= items[i].unitPrice ?></td>
+                  <td><?= items[i].currency ?></td>
+                  <td><?= items[i].quantity ?></td>
+                  <td><?= items[i].amount ?></td>
+                </tr>
+              <? } ?>
+              <? for (var j = 0; j < emptyRows; j++) { ?>
+                <tr>
+                  <td colspan="8">&nbsp;</td>
+                </tr>
+              <? } ?>
+            </tbody>
+            <tfoot>
+              <tr class="text-total">
+                <td colspan="6" class="text-end"><strong>Total:</strong></td>
+                <td><?= totalQty ?></td>
+                <td><?= totalAmount ?></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 6: Logo -->
+    <div class="row mt-5">
+      <div class="col-12">
+        <div class="logo-container">
+          <img src="<?= logoUrl ?>" alt="Company Logo" class="img-fluid">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

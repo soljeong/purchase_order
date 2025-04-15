@@ -22,3 +22,7 @@ clasp push -w
 clasp open-container
 clasp open-script
 ```
+
+## HtmlService.createTemplateFromFile
+
+- 앱스크립트에서 html 템플릿 이용할 수 있을지
