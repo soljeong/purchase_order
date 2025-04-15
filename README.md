@@ -16,3 +16,9 @@ clasp clone 18tbKmogGD3Bb7dw5vVj-Y16eGzu1MRyiuZ-7lyzNNMgl8rVihJYV9lkK
 ```
 
 - 이제 수정하면 push 가능할지
+```
+clasp push
+clasp push -w
+clasp open-container
+clasp open-script
+```

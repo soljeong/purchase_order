@@ -36,6 +36,9 @@ function confirmOrder() {
 
   // 발주번호를 구매의뢰 시트에도 반영
   recordOrderNumberToRequests(data, orderNumber);
+  
+  // 발주번호 드롭다운 재설정
+  setDropdownFromOrderNumbers();
 
   SpreadsheetApp.getUi().alert(`발주가 확정되었습니다.\n발주번호: ${orderNumber}`);
 }
@@ -69,6 +72,7 @@ function recordOrderNumberToRequests(filteredData, orderNumber) {
   });
 }
 
+// 구매처 드롭다운 생성
 function setDropdownFromVendors() {
   const { requestSheet, orderSheet } = getSharedContext();
   const targetCell = orderSheet.getRange('A1');
@@ -97,6 +101,33 @@ function setDropdownFromVendors() {
     .build();
 
   // 4. M8 셀에 적용
+  targetCell.setDataValidation(rule);
+  targetCell.setValue(''); // 기존 값 초기화
+}
+
+// 발주번호 드롭다운 생성
+function setDropdownFromOrderNumbers() {
+  const { orderListSheet, orderForm } = getSharedContext();
+  const targetCell = orderForm.getRange('M4');
+  const columnIndex = orderListSheet.getRange("1:1").getValues()[0].indexOf("발주번호") + 1;
+  if (columnIndex === 0) {
+    SpreadsheetApp.getUi().alert('"발주목록" 시트에서 "발주번호" 열을 찾을 수 없습니다.');
+    return;
+  }
+  const lastRow = orderListSheet.getLastRow();
+  const orderNumberData = orderListSheet.getRange(2, columnIndex, lastRow - 1, 1).getValues(); // 헤더 제외
+  // 2. 유니크한 값만 필터링
+  const orderNumbers = [...new Set(orderNumberData.flat().filter(v => v !== ''))];
+  if (orderNumbers.length === 0) {
+    SpreadsheetApp.getUi().alert('발주번호 목록이 비어있습니다.');
+    return;
+  }
+  // 3. 유효성 규칙 만들기
+  const rule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(orderNumbers, true)
+    .setAllowInvalid(false)
+    .build();
+  // 4. M4 셀에 적용
   targetCell.setDataValidation(rule);
   targetCell.setValue(''); // 기존 값 초기화
 }
@@ -203,6 +234,8 @@ function onOpen() {
     .addItem('② 선택된 구매처 데이터 복사', 'copyFilteredVendorRows')
     .addItem('③ 발주 확정 및 발주번호 발행', 'confirmOrder')
     .addToUi();
+
+  setDropdownFromVendors();
 }
 
 function onEdit(e) {
