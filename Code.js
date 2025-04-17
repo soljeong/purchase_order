@@ -14,7 +14,13 @@ function confirmOrder() {
   const { orderSheet, orderListSheet, ss } = getSharedContext();
 
   const timestamp = new Date();
-  const orderNumber = 'PO-' + Utilities.formatDate(timestamp, ss.getSpreadsheetTimeZone(), 'yyyyMMdd') + orderSheet.getRange('A1').getValue().toString().trim();
+
+  // 발주번호 생성
+  // 날짜 문자열
+  const dateString = Utilities.formatDate(timestamp, ss.getSpreadsheetTimeZone(), 'yyyyMMdd');
+  
+
+  const orderNumber = 'PO-' + dateString + orderSheet.getRange('A1').getValue().toString().trim();
 
   // C2부터 시작된 발주 리스트 읽기
   const startRow = 2;
@@ -29,7 +35,7 @@ function confirmOrder() {
   }
 
   // 발주번호를 각 행에 추가하여 전송
-  const dataWithOrderNumber = data.map(row => [orderNumber, ...row]);
+  const dataWithOrderNumber = data.map(row => [orderNumber, dateString, ...row]);
   const targetStartRow = orderListSheet.getLastRow() + 1;
   orderListSheet.getRange(targetStartRow, 1, dataWithOrderNumber.length, dataWithOrderNumber[0].length)
     .setValues(dataWithOrderNumber);
@@ -284,7 +290,11 @@ function showInvoice() {
   // 데이터 삽입
 
   template.offerCode = orderNumber;
-  template.offerDate = new Date();
+  
+  // yyyy. MM. dd 형식으로
+  // 발주번호 형식 바꾼 뒤에 그 번호에서 날짜 가져오는걸로 todo
+
+  template.offerDate = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy. MM. dd');
   
   // items에 필터된 행 데이터 입력
   template.items = filteredRows.map(row => ({
