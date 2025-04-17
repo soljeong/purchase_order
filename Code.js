@@ -6,7 +6,8 @@ function getSharedContext() {
     orderSheet: ss.getSheetByName('발주초안'),
     requestSheet: ss.getSheetByName('구매의뢰'),
     orderListSheet: ss.getSheetByName('발주목록'),
-    orderForm : ss.getSheetByName("발주서")
+    orderForm : ss.getSheetByName("발주서"),
+    vendorListSheet: ss.getSheetByName('거래처'),
   };
 }
 
@@ -259,7 +260,7 @@ function onEdit(e) {
 }
 // 발주서 작성
 function showInvoice() {
-  const { orderForm , orderListSheet} = getSharedContext();
+  const { orderForm , orderListSheet, vendorListSheet} = getSharedContext();
   // 발주서 시트에서 발주번호 읽기
   const orderNumber = orderForm.getRange('M4').getValue().toString().trim();
   if (!orderNumber) {
@@ -277,11 +278,10 @@ function showInvoice() {
     SpreadsheetApp.getUi().alert(`발주번호 "${orderNumber}"에 해당하는 데이터가 없습니다.`);
     return;
   }
-  // 필터링된 데이터에서 필요한 정보 추출
-  const filteredRow = filteredRows[0];
+
   const skuIndex = headers.indexOf('SKU');
-  // 수량
   const quantityIndex = headers.indexOf('수량');
+  const vendorIndex = headers.indexOf('구매처');
 
 
   // 템플릿 작성
@@ -290,11 +290,12 @@ function showInvoice() {
   // 데이터 삽입
 
   template.offerCode = orderNumber;
-  
+
   // yyyy. MM. dd 형식으로
   // 발주번호 형식 바꾼 뒤에 그 번호에서 날짜 가져오는걸로 todo
 
   template.offerDate = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy. MM. dd');
+
   
   // items에 필터된 행 데이터 입력
   template.items = filteredRows.map(row => ({
@@ -309,17 +310,34 @@ function showInvoice() {
 
 
   // 구매자 정보
-
+  
   template.buyerName = "EZVATION Inc";
   template.buyerAddress = "308-11 Songjeong-ri, Mado-myeon, Hwaseong-si, Gyeonggi-do, Republic of Korea";
   template.buyerEmail = "";
   template.buyerWechat = "";
   template.buyerAttn = "";
-
+  
   // 공급자 정보
-  template.supplierName = "";
-  template.supplierAddress = "";
-  template.supplierEmail = "";
+  const vendorName = filteredRows[0][vendorIndex];
+
+  // 거래처 시트에서 공급자 정보 가져오기
+  const vendorData = vendorListSheet.getDataRange().getValues();
+  const vendorHeaders = vendorData[0];
+  const vendorNameIndex = vendorHeaders.indexOf('거래처');
+  const vendorAddressIndex = vendorHeaders.indexOf('사명 영문');
+  const vendorEmailIndex = vendorHeaders.indexOf('사명 중문');
+
+  // 매칭되는 정보 찾기
+  const vendorRow = vendorData.find(row => row[vendorNameIndex] === vendorName);
+  if (vendorRow) {
+    template.supplierName = vendorRow[vendorNameIndex];
+    template.supplierAddress = vendorRow[vendorAddressIndex];
+    template.supplierEmail = vendorRow[vendorEmailIndex];
+  } else {
+    SpreadsheetApp.getUi().alert(`"${vendorName}"에 해당하는 공급자 정보가 없습니다.`);
+    return;
+  }
+
   template.supplierWechat = "";
   template.supplierAttn = "";
   template.remarks = "";
