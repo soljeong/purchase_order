@@ -253,17 +253,60 @@ function onEdit(e) {
 }
 // 발주서 작성
 function showInvoice() {
+  const { orderForm , orderListSheet} = getSharedContext();
+  // 발주서 시트에서 발주번호 읽기
+  const orderNumber = orderForm.getRange('M4').getValue().toString().trim();
+  if (!orderNumber) {
+    SpreadsheetApp.getUi().alert('발주번호가 선택되지 않았습니다.');
+    return;
+  }
+  // 발주번호에 해당하는 행 찾기
+  const data = orderListSheet.getDataRange().getValues();
+  const headers = data[0];
+  const orderNumberIndex = headers.indexOf('발주번호');
+
+  // 발주번호로 필터링
+  const filteredRows = data.filter(row => row[orderNumberIndex] === orderNumber);
+  if (filteredRows.length === 0) {
+    SpreadsheetApp.getUi().alert(`발주번호 "${orderNumber}"에 해당하는 데이터가 없습니다.`);
+    return;
+  }
+  // 필터링된 데이터에서 필요한 정보 추출
+  const filteredRow = filteredRows[0];
+  const skuIndex = headers.indexOf('SKU');
+  // 수량
+  const quantityIndex = headers.indexOf('수량');
+
+
+  // 템플릿 작성
   const template = HtmlService.createTemplateFromFile('invoice');
 
+  // 데이터 삽입
 
-  // 예시 데이터 삽입
-  template.offerCode = "PO-20250415qqq";
-  template.offerDate = "2025-04-15";
+  template.offerCode = orderNumber;
+  template.offerDate = new Date();
+  
+  // items에 필터된 행 데이터 입력
+  template.items = filteredRows.map(row => ({
+    sku: row[skuIndex],
+    productName: "",
+    material: "",
+    unitPrice: "",
+    currency: "",
+    quantity: row[quantityIndex],
+    amount:""
+  }));
+
+
+  // 구매자 정보
+
   template.buyerName = "EZVATION Inc";
   template.buyerAddress = "308-11 Songjeong-ri, Mado-myeon, Hwaseong-si, Gyeonggi-do, Republic of Korea";
   template.buyerEmail = "";
   template.buyerWechat = "";
   template.buyerAttn = "";
+
+  // 공급자 정보
   template.supplierName = "";
   template.supplierAddress = "";
   template.supplierEmail = "";
@@ -275,17 +318,13 @@ function showInvoice() {
   template.totalAmount = 0;
   template.logoUrl = "https://your-logo-url.png";
 
-  template.items = [
-    { sku: "PT-0000004", productName: "", material: "", unitPrice: "", currency: "", quantity: 1, amount: "" },
-    { sku: "PT-0000003", productName: "", material: "", unitPrice: "", currency: "", quantity: 1, amount: "" },
-    { sku: "PT-0000001", productName: "", material: "", unitPrice: "", currency: "", quantity: 1, amount: "" }
-  ];
+  // 빈 행 추가
 
-  template.emptyRows = 10 - template.items.length;
+  template.emptyRows = 3 - template.items.length;
 
   const htmlOutput = template.evaluate()
-    .setWidth(800)
-    .setHeight(600);
+    .setWidth(1000)
+    .setHeight(1600);
 
   SpreadsheetApp.getUi().showModalDialog(htmlOutput, '발주서');
 

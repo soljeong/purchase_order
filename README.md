@@ -26,3 +26,4 @@ clasp open-script
 ## HtmlService.createTemplateFromFile
 
 - 앱스크립트에서 html 템플릿 이용할 수 있을지
+- 시트의 데이터를 템플릿에 뿌려서 모달로 템플릿 표시
