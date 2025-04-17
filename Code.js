@@ -8,6 +8,7 @@ function getSharedContext() {
     orderListSheet: ss.getSheetByName('발주목록'),
     orderForm : ss.getSheetByName("발주서"),
     vendorListSheet: ss.getSheetByName('거래처'),
+    priceSheet: ss.getSheetByName('부품원가'),
   };
 }
 
@@ -139,8 +140,10 @@ function setDropdownFromOrderNumbers() {
   targetCell.setValue(''); // 기존 값 초기화
 }
 
+// 구매처별로 구매의뢰 필터
+// 필터하면서 부품원가에 있는 데이터도 가져온다
 function copyFilteredVendorRows() {
-  const { requestSheet, orderSheet } = getSharedContext();
+  const { requestSheet, orderSheet, priceSheet } = getSharedContext();
   const vendorValue = orderSheet.getRange('A1').getValue().toString().trim();
   if (!vendorValue) {
     SpreadsheetApp.getUi().alert('구매처가 선택되지 않았습니다.');
@@ -153,12 +156,15 @@ function copyFilteredVendorRows() {
   const headers = data[0];
   const vendorColumnIndex = headers.indexOf('구매처');
   const orderNumberColumnIndex = headers.indexOf('발주번호');
+  const skuColumnIndex = headers.indexOf('SKU');
 
-
-  if (vendorColumnIndex === -1) {
-    SpreadsheetApp.getUi().alert('"구매처" 열을 찾을 수 없습니다.');
-    return;
-  }
+  // "부품원가" 시트 데이터 불러오기
+  const priceDataRange = priceSheet.getDataRange();
+  const priceData = priceDataRange.getValues();
+  const priceHeaders = priceData[0];
+  const priceSkuColumnIndex = priceHeaders.indexOf('SKU');
+  const priceUnitPriceColumnIndex = priceHeaders.indexOf('단가');
+  const priceCurrencyColumnIndex = priceHeaders.indexOf('통화');
 
   // ✅ 구매처가 일치하고 발주번호가 비어 있는 행만 필터링 (헤더 제외)
   const filteredRows = data.slice(1).filter(row =>
@@ -170,6 +176,21 @@ function copyFilteredVendorRows() {
     SpreadsheetApp.getUi().alert(`"${vendorValue}"에 해당하는 데이터가 없습니다.`);
     return;
   }
+
+  // 필터링된 행에서 SKU를 기준으로 부품원가 시트에서 단가와 통화 가져오기
+  const skuSet = new Set(filteredRows.map(row => row[skuColumnIndex]));
+  const priceMap = new Map();
+  priceData.slice(1).forEach(row => {
+    const sku = row[priceSkuColumnIndex];
+    if (skuSet.has(sku)) {
+      priceMap.set(sku, {
+        unitPrice: row[priceUnitPriceColumnIndex],
+        currency: row[priceCurrencyColumnIndex]
+      });
+    }
+  }
+  );
+  
   // 🔸 기존 C2:H 데이터 삭제
   const clearRange = orderSheet.getRange('C2:H');
   clearRange.clearContent();
@@ -177,8 +198,23 @@ function copyFilteredVendorRows() {
   // 결과 붙여넣기: 시트의 A2 셀 기준으로
   const startRow = 2;
   const startCol = 3; // C열 = 3
-  const outputRange = orderSheet.getRange(startRow, startCol, filteredRows.length, filteredRows[0].length);
-  outputRange.setValues(filteredRows);
+
+  const numCols = 6; // C2:H 범위
+  const outputData = filteredRows.map(row => {
+    const sku = row[skuColumnIndex];
+    const priceInfo = priceMap.get(sku) || { unitPrice: '', currency: '' };
+    return [
+      row[skuColumnIndex],
+      row[1], // 품명
+      row[2], // 색상
+      row[3], // 수량
+      priceInfo.unitPrice,
+      priceInfo.currency
+    ];
+  });
+  const outputRange = orderSheet.getRange(startRow, startCol, outputData.length, numCols);
+  outputRange.setValues(outputData);
+  
 }
 
 function fillPOForm() {
